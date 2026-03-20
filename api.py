@@ -17,29 +17,27 @@ except Exception as e:
 @app.route('/predict', methods=['POST'])
 def predict():
     data = request.json
-    print("\n📥 1. ข้อมูลดิบที่รับมาจากเว็บ:", data)
-
     try:
         input_data = pd.DataFrame([[
-            float(data['assists']), 
-            float(data['damage_received']), 
-            float(data['headshots']), 
-            float(data['traded']), 
-            float(data['kills']), 
-            float(data['matches']), 
-            float(data['deaths']), 
-            float(data['damage'])
+            float(data['assists']), float(data['damage_received']), float(data['headshots']), 
+            float(data['traded']), float(data['kills']), float(data['matches']), 
+            float(data['deaths']), float(data['damage'])
         ]], columns=['assists', 'damage_received', 'headshots', 'traded', 'kills', 'matches', 'deaths', 'damage'])
         
-        print("📊 2. ข้อมูลที่เตรียมเข้าโมเดล:\n", input_data)
-        
         prediction = model.predict(input_data)[0]
-        print("🎯 3. โมเดลทายว่า:", prediction)
-        
         return jsonify({"rank": str(prediction)})
     except Exception as e:
-        print("❌ เกิด Error:", str(e))
         return jsonify({"error": str(e)}), 400
+
+# 🆕 เพิ่ม API สำหรับดึงข้อมูล Dataset ทั้งหมดจาก CSV
+@app.route('/dataset', methods=['GET'])
+def get_dataset():
+    try:
+        df = pd.read_csv('valorant_clean.csv')
+        # แปลงข้อมูลในตารางเป็น JSON แล้วส่งให้หน้าเว็บ
+        return jsonify(df.to_dict(orient='records'))
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
     app.run(port=5000, debug=True)
