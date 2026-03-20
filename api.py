@@ -4,26 +4,31 @@ import pandas as pd
 import joblib
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}}) 
+CORS(app)
 
-# ตรวจสอบการโหลดโมเดล
+# โหลดโมเดล AI
 try:
     model = joblib.load('valorant_dt_model.pkl')
 except Exception as e:
-    print(f"Model Load Error: {e}")
+    print(f"Error: Could not load model. {e}")
 
 @app.route('/predict', methods=['POST'])
 def predict():
     data = request.json
     try:
-        # ลำดับ Features ต้องตรงกับที่ใช้ Train
-        input_df = pd.DataFrame([[
-            data['assists'], data['damage_received'], data['headshots'], 
-            data['traded'], data['kills'], data['matches'], 
-            data['deaths'], data['damage']
+        # เรียงลำดับ Feature ให้ตรงกับในไฟล์ valorant_clean.csv
+        input_data = pd.DataFrame([[
+            data['assists'], 
+            data['damage_received'], 
+            data['headshots'], 
+            data['traded'], 
+            data['kills'], 
+            data['matches'], 
+            data['deaths'], 
+            data['damage']
         ]], columns=['assists', 'damage_received', 'headshots', 'traded', 'kills', 'matches', 'deaths', 'damage'])
         
-        prediction = model.predict(input_df)[0]
+        prediction = model.predict(input_data)[0]
         return jsonify({"rank": str(prediction)})
     except Exception as e:
         return jsonify({"error": str(e)}), 400
